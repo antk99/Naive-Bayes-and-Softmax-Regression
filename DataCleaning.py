@@ -23,6 +23,7 @@ from sklearn.naive_bayes import MultinomialNB
 twenty_train = fetch_20newsgroups(subset='train',
                                   shuffle=True, random_state=42,
                                   remove=(['headers', 'footers', 'quotes']))
+categories = twenty_train.target_names
 
 # Sentiment140 dataset importation
 Sentiment140_test = pd.read_csv('/Users/lunadana/Desktop/COMP551/MiniProject/2/new_testdata.manual.2009.06.14.csv')
@@ -67,21 +68,23 @@ count_negative = (df_words_negative.sum(axis=0)/len(df_words_negative)).to_dict(
 
 # ----------- 20 news dataset pre-processing -----------
 # Task : start with the text data and convert text to feature vectors
-count_vect = CountVectorizer()
-X_train_counts = count_vect.fit_transform(twenty_train.data)
-
-# tfidf_transformer = TfidfTransformer()
-# X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
-
-# Using td-idf methods
-tf_transformer = TfidfTransformer(use_idf=False).fit(X_train_counts)
-X_train_tf = tf_transformer.transform(X_train_counts).toarray()
-
-#df_news = pd.DataFrame(array_words, columns = words)
-#df_news = df_news.assign(ClassOutput=twenty_train.)
-
-# Split the data depending on the sentiment 
-#df_words_1 = df_words[df_words['SentimentOutput'] == 4]
+# Create a dict and store the probabilities for each category
+dict_of_20news_prob = {}
+priors_20news_prob = {}
+# iterate in all the different categories
+for i in categories:
+    twenty_train_cat = fetch_20newsgroups(subset='train',
+                                  shuffle=True, random_state=42,
+                                  remove=(['headers', 'footers', 'quotes']),
+                                         categories = [i])
+    prior_prob = len(twenty_train_cat.data)/len(twenty_train.data)
+    priors_20news_prob[i] = prior_prob
+    vect = CountVectorizer()
+    X = vect.fit_transform(twenty_train_cat.data).toarray()
+    words = vect.get_feature_names()
+    df = pd.DataFrame(X, columns = words)
+    count = (df.sum(axis=0)/len(df)).to_dict()
+    dict_of_20news_prob[i] = count
 
 # ----------- Naive bayes -----------
 Y = Sentiment140_train["Y"]
@@ -92,8 +95,8 @@ Y = Sentiment140_train["Y"]
 # ----------- K-foldcrossvalidation -----------
 
 
+# else 
 
-
-
-
+# tfidf_transformer = TfidfTransformer()
+# X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
 
