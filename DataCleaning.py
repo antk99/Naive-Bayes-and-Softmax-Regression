@@ -20,23 +20,32 @@ from sklearn.naive_bayes import MultinomialNB
 # Twenty dataset importation
 # To know : subset{‘train’, ‘test’, ‘all’}, default=’train’
 # work with a subset : categories = ['alt.atheism', 'soc.religion.christian','comp.graphics', 'sci.med']
+
+"""
+twenty_train.data is a list of strings containing the data
+twenty_train.target is a ndarray linking each string from the data to its label (0-19)
+"""
 twenty_train = fetch_20newsgroups(subset='train',
                                   shuffle=True, random_state=42,
                                   remove=(['headers', 'footers', 'quotes']))
 categories = twenty_train.target_names
 
+# Combining the data with the targets
+twenty_train_combined = pd.DataFrame(twenty_train.data)
+twenty_train_combined['Target'] = twenty_train.target
+
 # Sentiment140 dataset importation
-Sentiment140_test = pd.read_csv('/Users/lunadana/Desktop/COMP551/MiniProject/2/new_testdata.manual.2009.06.14.csv')
-Sentiment140_train = pd.read_csv('/Users/lunadana/Desktop/COMP551/MiniProject/2/trainingandtestdata/training.1600000.processed.noemoticon.csv', encoding='ISO-8859-1',header=None,nrows=5000)                                  
+Sentiment140_test = pd.read_csv('data/testdata.manual.2009.06.14.csv')
+Sentiment140_train = pd.read_csv('data/training.1600000.processed.noemoticon.csv', encoding='ISO-8859-1', header=None, nrows=5000)
 
 # ----------- Sentiment dataset pre-processing -----------
 # Set the columns
-Sentiment_columns = ['Y','id','date','query','user','text']
+Sentiment_columns = ['Y', 'id', 'date', 'query', 'user', 'text']
 Sentiment140_test.columns = Sentiment_columns                    
 Sentiment140_train.columns = Sentiment_columns  
 
 # Remove stop words from the data 
-with open("/Users/lunadana/Desktop/COMP551/MiniProject/2/stopwords.txt") as f:
+with open("stopwords.txt") as f:
     stopwords_list = list(f)
     stopwords_list = [x[:-1] for x in stopwords_list]
 pat = r'\b(?:{})\b'.format('|'.join(stopwords_list))
@@ -52,9 +61,9 @@ Sentiment_Y = list(Sentiment140_train['Y'])
 
 array_words = vectorizer.fit_transform(corpus).toarray()
 analyze = vectorizer.build_analyzer()
-words = vectorizer.get_feature_names()
+words = vectorizer.get_feature_names_out()
 
-df_words = pd.DataFrame(array_words, columns = words)
+df_words = pd.DataFrame(array_words, columns=words)
 df_words = df_words.assign(SentimentOutput=Sentiment_Y)
 
 # Split the data depending on the sentiment 
@@ -81,8 +90,8 @@ for i in categories:
     priors_20news_prob[i] = prior_prob
     vect = CountVectorizer()
     X = vect.fit_transform(twenty_train_cat.data).toarray()
-    words = vect.get_feature_names()
-    df = pd.DataFrame(X, columns = words)
+    words = vect.get_feature_names_out()
+    df = pd.DataFrame(X, columns=words)
     count = (df.sum(axis=0)/len(df)).to_dict()
     dict_of_20news_prob[i] = count
 
